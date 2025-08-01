@@ -24,11 +24,15 @@ interface CocoMapProps {
 // Kozhikode coordinates
 const KOZHIKODE_CENTER: [number, number] = [11.2588, 75.7804];
 
-// Custom coconut icon
+// Custom coconut icon using DivIcon instead of btoa
 const coconutIcon = new Icon({
-  iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32">
-      <text y="50%" x="50%" text-anchor="middle" dominant-baseline="central" font-size="24">🥥</text>
+  iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+      <circle cx="16" cy="16" r="15" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+      <circle cx="16" cy="16" r="12" fill="#A0522D"/>
+      <circle cx="12" cy="12" r="2" fill="#654321"/>
+      <circle cx="20" cy="12" r="2" fill="#654321"/>
+      <circle cx="16" cy="18" r="1" fill="#654321"/>
     </svg>
   `),
   iconSize: [32, 32],
