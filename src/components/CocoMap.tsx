@@ -57,7 +57,6 @@ const CocoMap: React.FC<CocoMapProps> = ({ onInteraction, interactionCount }) =>
     zoom: "Zoom all you want. It's still just coconuts.",
     idle: "Still here? Even coconuts get bored.",
     illegalClick: "Hey rookie! You cant just drop coconuts anywhere. Use the Add Coconut button like everyone else.",
-    oceanCoconut: "Ocean coconut? Bold move, sailor.",
     speechless: "Speechless? Even your coconut is disappointed.",
     triggerHappy: "Trigger-happy much? Even coconuts need commitment.",
     cancelled: "Scared of responsibility? Coconut unplaced.",
