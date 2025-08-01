@@ -35,20 +35,10 @@ const CocoBreak: React.FC<CocoBreakProps> = ({ onComplete }) => {
     }
   };
 
-  const crackStages = [
-    "🥥", // 0-2 clicks
-    "🥥", // 3-4 clicks
-    "🥥", // 5-6 clicks
-    "🥥", // 7-8 clicks
-    "💥", // 9+ clicks (cracked)
-  ];
-
   const getCurrentCoconut = () => {
-    if (isCracked) return "💥";
-    if (clicks >= 7) return "🥥";
-    if (clicks >= 5) return "🥥";
-    if (clicks >= 3) return "🥥";
-    return "🥥";
+    if (isComplete) return "🥥"; // Half coconut after completion
+    if (isCracked) return "💥"; // Explosion effect
+    return "🥥"; // Full coconut initially
   };
 
   const getProgressMessage = () => {

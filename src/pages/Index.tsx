@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import CocoMap from '@/components/CocoMap';
 import CocoBreak from '@/components/CocoBreak';
@@ -13,14 +14,7 @@ const Index = () => {
   const handleInteraction = useCallback(() => {
     setInteractionCount(prev => prev + 1);
     setIdleTime(0);
-    
-    // Unlock CocoBreak after 10-15 interactions
-    if (interactionCount + 1 >= 12 && !showCocoBreak) {
-      setTimeout(() => {
-        setShowCocoBreak(true);
-      }, 2000);
-    }
-  }, [interactionCount, showCocoBreak]);
+  }, []);
 
   const handleCocoBreakComplete = () => {
     setShowCocoBreak(false);
@@ -101,6 +95,18 @@ const Index = () => {
             interactionCount={interactionCount}
           />
         </Card>
+
+        {/* CocoBreak Button */}
+        <div className="text-center mt-6">
+          <Button
+            variant="coconut"
+            size="lg"
+            onClick={() => setShowCocoBreak(true)}
+            className="shadow-glow"
+          >
+            🥥 Take a CocoBreak!
+          </Button>
+        </div>
 
         {/* Footer */}
         <div className="text-center mt-6 text-muted-foreground text-sm">
