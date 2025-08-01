@@ -1,16 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import { LatLng, Icon } from 'leaflet';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import 'leaflet/dist/leaflet.css';
 
 interface Coconut {
   id: string;
-  lat: number;
-  lng: number;
+  x: number;
+  y: number;
   caption: string;
   isAI: boolean;
   confidence?: number;
@@ -21,58 +18,47 @@ interface CocoMapProps {
   interactionCount: number;
 }
 
-// Kozhikode coordinates
-const KOZHIKODE_CENTER: [number, number] = [11.2588, 75.7804];
-
-// Custom coconut icon using DivIcon instead of btoa
-const coconutIcon = new Icon({
-  iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-      <circle cx="16" cy="16" r="15" fill="#8B4513" stroke="#654321" stroke-width="2"/>
-      <circle cx="16" cy="16" r="12" fill="#A0522D"/>
-      <circle cx="12" cy="12" r="2" fill="#654321"/>
-      <circle cx="20" cy="12" r="2" fill="#654321"/>
-      <circle cx="16" cy="18" r="1" fill="#654321"/>
-    </svg>
-  `),
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-});
-
-// Map click handler component
-const MapClickHandler: React.FC<{
-  isPlacementMode: boolean;
-  onMapClick: (latlng: LatLng) => void;
-  onInteraction: () => void;
-}> = ({ isPlacementMode, onMapClick, onInteraction }) => {
-  useMapEvents({
-    click: (e) => {
-      onInteraction();
-      if (isPlacementMode) {
-        onMapClick(e.latlng);
-      }
-    },
-  });
-  return null;
-};
-
 const CocoMap: React.FC<CocoMapProps> = ({ onInteraction, interactionCount }) => {
   const [coconuts, setCoconuts] = useState<Coconut[]>([]);
   const [isPlacementMode, setIsPlacementMode] = useState(false);
   const [showCaptionInput, setShowCaptionInput] = useState(false);
-  const [pendingCoconut, setPendingCoconut] = useState<{ lat: number; lng: number } | null>(null);
+  const [pendingCoconut, setPendingCoconut] = useState<{ x: number; y: number } | null>(null);
   const [caption, setCaption] = useState('');
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Generate initial AI coconuts around Kozhikode
+  // Generate initial AI coconuts around Kozhikode (using percentage coordinates)
   useEffect(() => {
     const aiCoconuts: Coconut[] = [
-      { id: 'ai-1', lat: 11.2488, lng: 75.7704, caption: 'Premium coconut water here!', isAI: true, confidence: 87 },
-      { id: 'ai-2', lat: 11.2688, lng: 75.7904, caption: 'Mystical coconut grove', isAI: true, confidence: 73 },
-      { id: 'ai-3', lat: 11.2388, lng: 75.7604, caption: 'Organic coconut paradise', isAI: true, confidence: 92 },
-      { id: 'ai-4', lat: 11.2788, lng: 75.8004, caption: 'Secret coconut stash', isAI: true, confidence: 56 },
+      { id: 'ai-1', x: 25, y: 30, caption: 'Premium coconut water near Kozhikode Beach!', isAI: true, confidence: 87 },
+      { id: 'ai-2', x: 70, y: 45, caption: 'Mystical coconut grove in Wayanad', isAI: true, confidence: 73 },
+      { id: 'ai-3', x: 45, y: 70, caption: 'Organic coconut paradise in Malabar', isAI: true, confidence: 92 },
+      { id: 'ai-4', x: 80, y: 20, caption: 'Secret coconut stash near Kappad', isAI: true, confidence: 56 },
     ];
     setCoconuts(aiCoconuts);
+  }, []);
+
+  // Get user location for Kozhikode focus
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          // Show location-based roast
+          if (Math.abs(position.coords.latitude - 11.2588) > 1) {
+            showRoast("Not in Kozhikode? This map is optimized for coconut hunting in God's Own Country!");
+          }
+        },
+        () => {
+          // Default to Kozhikode coordinates
+          setUserLocation({ lat: 11.2588, lng: 75.7804 });
+        }
+      );
+    }
   }, []);
 
   const roasts = {
@@ -111,18 +97,26 @@ const CocoMap: React.FC<CocoMapProps> = ({ onInteraction, interactionCount }) =>
     document.body.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewport=\'0 0 100 100\' style=\'fill:black;font-size:24px;\'><text y=\'50%\'>🥥</text></svg>") 16 16, auto';
   };
 
-  const handleMapClick = (latlng: LatLng) => {
+  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    onInteraction();
+    
     if (!isPlacementMode) {
       showRoast(roasts.illegalClick);
       return;
     }
 
-    // Check if clicking in ocean (far from Kozhikode coast)
-    if (latlng.lat > 11.3 || latlng.lng < 75.7) {
+    if (!mapRef.current) return;
+
+    const rect = mapRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // Check if clicking in ocean (top area representing Arabian Sea)
+    if (y < 20) {
       showRoast(roasts.oceanCoconut);
     }
 
-    setPendingCoconut({ lat: latlng.lat, lng: latlng.lng });
+    setPendingCoconut({ x, y });
     setShowCaptionInput(true);
     setIsPlacementMode(false);
     document.body.style.cursor = 'auto';
@@ -147,8 +141,8 @@ const CocoMap: React.FC<CocoMapProps> = ({ onInteraction, interactionCount }) =>
 
     const newCoconut: Coconut = {
       id: `user-${Date.now()}`,
-      lat: pendingCoconut.lat,
-      lng: pendingCoconut.lng,
+      x: pendingCoconut.x,
+      y: pendingCoconut.y,
       caption: caption.trim(),
       isAI: false
     };
@@ -171,63 +165,76 @@ const CocoMap: React.FC<CocoMapProps> = ({ onInteraction, interactionCount }) =>
 
   return (
     <div className="w-full h-full relative">
-      {/* Map Area */}
-      <div className="w-full h-96 border-2 border-accent/30 rounded-lg overflow-hidden shadow-tropical relative">
-        <MapContainer
-          center={KOZHIKODE_CENTER}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-          className={isPlacementMode ? 'cursor-crosshair' : ''}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          
-          <MapClickHandler
-            isPlacementMode={isPlacementMode}
-            onMapClick={handleMapClick}
-            onInteraction={onInteraction}
-          />
-
-          {/* Existing Coconuts */}
-          {coconuts.map((coconut) => (
-            <Marker
-              key={coconut.id}
-              position={[coconut.lat, coconut.lng]}
-              icon={coconutIcon}
-              eventHandlers={{
-                click: () => handleCoconutClick(coconut),
-              }}
-            >
-              <Popup>
-                <div className="text-center">
-                  <div className="font-semibold">{coconut.caption}</div>
-                  {coconut.isAI && (
-                    <div className="text-sm text-muted-foreground mt-1">
-                      AI Prediction - {coconut.confidence}% confidence
-                    </div>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
-          {/* Pending Coconut */}
-          {pendingCoconut && (
-            <Marker
-              position={[pendingCoconut.lat, pendingCoconut.lng]}
-              icon={coconutIcon}
-            >
-              <Popup>Placing coconut...</Popup>
-            </Marker>
+      {/* Map Area - Stylized as Kozhikode region */}
+      <div
+        ref={mapRef}
+        className={`w-full h-96 bg-gradient-kozhikode border-2 border-accent/30 rounded-lg relative overflow-hidden shadow-tropical ${
+          isPlacementMode ? 'cursor-crosshair' : 'cursor-pointer'
+        }`}
+        onClick={handleMapClick}
+      >
+        {/* Background representing Kozhikode geography */}
+        <div className="absolute inset-0">
+          {/* Arabian Sea (top) */}
+          <div className="absolute top-0 left-0 w-full h-1/4 bg-gradient-to-b from-blue-400/40 to-blue-300/20"></div>
+          {/* Coastal area */}
+          <div className="absolute top-1/4 left-0 w-full h-1/4 bg-gradient-to-b from-yellow-200/30 to-green-200/20"></div>
+          {/* Inland areas */}
+          <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-green-400/30 to-green-200/20"></div>
+          {/* Location indicator */}
+          {userLocation && (
+            <div className="absolute top-4 right-4 bg-card text-card-foreground px-2 py-1 rounded text-xs border border-accent/30">
+              📍 Kozhikode Region
+            </div>
           )}
-        </MapContainer>
+        </div>
 
         {/* Placement Mode Tooltip */}
         {isPlacementMode && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-4 py-2 rounded-lg shadow-glow z-[1000] border border-accent/30">
-            🥥 Choose your sacred coconut spot
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-card text-card-foreground px-4 py-2 rounded-lg shadow-glow z-10 border border-accent/30">
+            🥥 Choose your sacred coconut spot in Kozhikode
+          </div>
+        )}
+
+        {/* Coconut Markers */}
+        {coconuts.map((coconut) => (
+          <div
+            key={coconut.id}
+            className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 ${
+              coconut.isAI ? 'animate-coconut-bounce' : ''
+            }`}
+            style={{ left: `${coconut.x}%`, top: `${coconut.y}%` }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCoconutClick(coconut);
+            }}
+          >
+            <div className="relative group">
+              <div className={`text-2xl ${coconut.isAI ? 'opacity-80' : ''} hover:scale-110 transition-transform`}>
+                🥥
+              </div>
+              {coconut.isAI && (
+                <div className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs px-1 rounded-full">
+                  AI
+                </div>
+              )}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-card text-card-foreground px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity border border-accent/30 shadow-lg">
+                {coconut.caption}
+                {coconut.isAI && (
+                  <div className="text-muted-foreground">{coconut.confidence}% confidence</div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Pending Coconut */}
+        {pendingCoconut && (
+          <div
+            className="absolute transform -translate-x-1/2 -translate-y-1/2 text-2xl animate-pulse z-10"
+            style={{ left: `${pendingCoconut.x}%`, top: `${pendingCoconut.y}%` }}
+          >
+            🥥
           </div>
         )}
       </div>

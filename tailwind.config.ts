@@ -73,7 +73,8 @@ export default {
 			backgroundImage: {
 				'gradient-tropical': 'var(--gradient-tropical)',
 				'gradient-coconut': 'var(--gradient-coconut)',
-				'gradient-ocean': 'var(--gradient-ocean)'
+				'gradient-ocean': 'var(--gradient-ocean)',
+				'gradient-kozhikode': 'var(--gradient-kozhikode)'
 			},
 			boxShadow: {
 				'coconut': 'var(--shadow-coconut)',
