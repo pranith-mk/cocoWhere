@@ -39,6 +39,7 @@ const CocoBreak: React.FC<CocoBreakProps> = ({ onComplete }) => {
     if (isComplete) return "🥥"; // Half coconut after completion
     if (isCracked) return "💥"; // Explosion effect
     return "🥥"; // Full coconut initially
+
   };
 
   const getProgressMessage = () => {
@@ -81,7 +82,7 @@ const CocoBreak: React.FC<CocoBreakProps> = ({ onComplete }) => {
             <div
               className="bg-gradient-coconut h-3 rounded-full transition-all duration-300 ease-out"
     
-              // style={{ width: `${(clicks / maxClicks) * 100}%` }}
+              
               style={{ width: `${Math.min((clicks / maxClicks) * 100, 100)}%` }}
             ></div>
           </div>
