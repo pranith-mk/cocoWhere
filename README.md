@@ -68,7 +68,7 @@ For Software:
 
 ### Project Demo
 # Video
-[\[ demo video link \]](https://drive.google.com/file/d/1gh2bRrZf-HmMozlojVb1hdoPVFy6exZy/view?usp=drive_link)
+[\[ demo video link \]](ulp_video_compressed.mp4)
 *This demo walks you through CocoWhere, a quirky coconut-locating web app. You’ll see how to mark coconuts on the map, click them to view their status, and experience the app’s lighthearted roast messages. The video also showcases CocoBreak, a mini-game where you repeatedly click to smash a coconut, trigger an explosion animation, and reveal a half coconut.*
 
 
